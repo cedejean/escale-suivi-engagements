@@ -4,804 +4,730 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Suivi des Engagements – École Escale</title>
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Serif+Display&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
 <style>
-  :root {
-    --bg: #f5f4f0;
-    --surface: #ffffff;
-    --surface2: #f0ede8;
-    --border: #e2ddd8;
-    --text: #1a1816;
-    --text-muted: #7a746d;
-    --accent: #2d6a4f;
-    --accent-light: #d8ede3;
-    --accent2: #e76f51;
-    --accent2-light: #fde8e2;
-    --step1: #2d6a4f;
-    --step2: #40916c;
-    --step3: #52b788;
-    --step4: #74c69d;
-    --step5: #95d5b2;
-    --radius: 10px;
-    --shadow: 0 2px 12px rgba(0,0,0,.07);
-  }
+:root {
+  --green:#2d6a4f; --green-d:#1f4d39; --green-l:#d8ede3; --green-m:#40916c;
+  --bg:#f4f2ee; --white:#ffffff; --border:#e4dfd8; --border2:#f0ede8;
+  --text:#1a1816; --muted:#7a746d; --muted2:#a09a93;
+  --orange:#e07b4a; --orange-l:#fdf0ea;
+  --blue:#1a73e8; --blue-l:#e8f0fe;
+  --yellow-l:#fef9e7; --yellow:#b8870a;
+  --r:12px; --sh:0 2px 18px rgba(0,0,0,.07);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
 
-  * { box-sizing: border-box; margin: 0; padding: 0; }
+/* ── SETUP ── */
+#setup{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;background:var(--bg)}
+.sc{background:var(--white);border-radius:16px;padding:36px 32px;max-width:560px;width:100%;box-shadow:var(--sh);border:1px solid var(--border)}
+.sc-logo{text-align:center;font-size:2.2rem;margin-bottom:12px}
+.sc h1{font-size:1.35rem;font-weight:700;text-align:center;margin-bottom:6px}
+.sc>.sub{text-align:center;color:var(--muted);font-size:.83rem;margin-bottom:24px;line-height:1.55}
+.sc-steps{display:flex;flex-direction:column;gap:11px;margin-bottom:24px}
+.ss{display:flex;gap:11px;align-items:flex-start;font-size:.83rem;line-height:1.55}
+.ss .n{width:22px;height:22px;min-width:22px;background:var(--green);color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.68rem;font-weight:700;margin-top:1px}
+.ss a{color:var(--green);font-weight:600}
+.ss code{background:#f0ede8;padding:1px 6px;border-radius:4px;font-size:.76rem;font-family:monospace;word-break:break-all}
+.sc-form{display:flex;gap:8px;margin-bottom:10px}
+.sc-form input{flex:1;padding:9px 13px;border:1.5px solid var(--border);border-radius:8px;font-family:'Inter',sans-serif;font-size:.84rem;background:var(--bg);color:var(--text);transition:border-color .15s}
+.sc-form input:focus{outline:none;border-color:var(--green)}
+.sc-note{font-size:.72rem;color:var(--muted);text-align:center;line-height:1.5}
+#setup-err{color:#c0392b;font-size:.78rem;text-align:center;margin-top:8px;display:none}
+.sc-rules{background:#f9f7f4;border:1px solid var(--border);border-radius:8px;padding:12px 14px;margin-bottom:18px;font-size:.78rem;line-height:1.6}
+.sc-rules strong{display:block;margin-bottom:4px;font-size:.75rem;letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
+.sc-rules code{background:#fff;padding:2px 8px;border-radius:4px;font-family:monospace;font-size:.76rem;display:block;margin:4px 0;word-break:break-all}
 
-  body {
-    font-family: 'DM Sans', sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    min-height: 100vh;
-    padding: 24px 20px 48px;
-  }
+/* ── APP ── */
+#app{max-width:780px;margin:0 auto;padding:22px 16px 72px;display:none}
+.app-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:22px;flex-wrap:wrap;gap:12px}
+.ah-left h1{font-size:1.35rem;font-weight:700}
+.ah-left p{font-size:.78rem;color:var(--muted);margin-top:2px}
+.ah-right{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.sync-wrap{display:flex;align-items:center;gap:6px;font-size:.72rem;color:var(--muted);padding:5px 10px;background:var(--white);border:1px solid var(--border);border-radius:20px}
+.sd{width:7px;height:7px;border-radius:50%;background:#ccc;transition:background .3s}
+.sd.ok{background:#27ae60}
+.sd.waiting{background:#f39c12;animation:pulse 1.1s infinite}
+.sd.err{background:#e74c3c}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
 
-  /* ── Header ── */
-  .header {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 16px;
-    margin-bottom: 28px;
-  }
-  .header-left h1 {
-    font-family: 'DM Serif Display', serif;
-    font-size: 1.75rem;
-    line-height: 1.1;
-    color: var(--text);
-  }
-  .header-left p {
-    font-size: .82rem;
-    color: var(--text-muted);
-    margin-top: 4px;
-  }
-  .badge-count {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    background: var(--accent-light);
-    color: var(--accent);
-    font-size: .75rem;
-    font-weight: 600;
-    padding: 3px 10px;
-    border-radius: 20px;
-    margin-top: 8px;
-  }
+/* Buttons */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:9px 18px;border-radius:8px;font-family:'Inter',sans-serif;font-size:.875rem;font-weight:600;cursor:pointer;border:none;transition:background .15s,transform .1s;white-space:nowrap}
+.btn:hover{transform:translateY(-1px)}
+.btn-green{background:var(--green);color:#fff}
+.btn-green:hover{background:var(--green-d)}
+.btn-ghost{background:var(--white);color:var(--muted);border:1px solid var(--border)}
+.btn-ghost:hover{background:var(--bg)}
+.btn-arch{background:var(--orange-l);color:var(--orange);border:1px solid #f5c9ae;font-size:.72rem;padding:5px 12px;border-radius:6px}
+.btn-arch:hover{background:#fae3d5}
+.btn-del{background:none;border:none;color:var(--muted2);cursor:pointer;padding:3px 5px;border-radius:4px;font-size:.9rem;line-height:1;transition:color .15s}
+.btn-del:hover{color:#e74c3c}
 
-  /* ── Add button ── */
-  .btn-add {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    background: var(--accent);
-    color: #fff;
-    border: none;
-    border-radius: var(--radius);
-    padding: 10px 20px;
-    font-family: 'DM Sans', sans-serif;
-    font-size: .9rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: background .18s, transform .12s;
-    white-space: nowrap;
-  }
-  .btn-add:hover { background: #245a41; transform: translateY(-1px); }
-  .btn-add svg { flex-shrink: 0; }
+/* Badge */
+.ct-badge{display:inline-flex;align-items:center;gap:5px;background:var(--green-l);color:var(--green);font-size:.7rem;font-weight:600;padding:3px 9px;border-radius:20px;margin-top:5px}
 
-  /* ── Legend ── */
-  .legend {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    margin-bottom: 20px;
-  }
-  .legend-item {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    font-size: .75rem;
-    color: var(--text-muted);
-  }
-  .legend-dot {
-    width: 10px; height: 10px;
-    border-radius: 50%;
-  }
+/* ── CARDS ── */
+#persons-list{display:flex;flex-direction:column;gap:12px}
+.pcard{background:var(--white);border:1px solid var(--border);border-radius:var(--r);box-shadow:var(--sh);overflow:hidden;transition:box-shadow .2s}
+.pcard:hover{box-shadow:0 4px 26px rgba(0,0,0,.1)}
+.ch{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;cursor:pointer;user-select:none;gap:10px}
+.ch:hover{background:#faf8f5}
+.cl{display:flex;align-items:center;gap:11px;flex:1;min-width:0}
+.av{width:38px;height:38px;min-width:38px;background:var(--green-l);color:var(--green);border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:.78rem;font-weight:700}
+.cn{font-weight:600;font-size:.92rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cm{font-size:.7rem;color:var(--muted);margin-top:2px}
+.sb{display:inline-flex;padding:1px 7px;border-radius:3px;font-size:.64rem;font-weight:600;background:var(--blue-l);color:var(--blue);margin-right:3px}
+.cr{display:flex;align-items:center;gap:8px;flex-shrink:0}
+.pw{text-align:right}
+.pb-bg{width:80px;height:4px;background:var(--border);border-radius:2px;overflow:hidden;margin-bottom:3px}
+.pb-fill{height:100%;background:var(--green);border-radius:2px;transition:width .4s ease}
+.pl{font-size:.66rem;color:var(--muted);white-space:nowrap}
+.chevron{color:var(--muted2);font-size:.72rem;transition:transform .2s}
+.pcard.open .chevron{transform:rotate(180deg)}
 
-  /* ── Table wrapper ── */
-  .table-wrap {
-    background: var(--surface);
-    border-radius: var(--radius);
-    box-shadow: var(--shadow);
-    overflow-x: auto;
-    border: 1px solid var(--border);
-  }
+/* Card body */
+.cb{border-top:1px solid var(--border);display:none}
+.pcard.open .cb{display:block}
+.sec-lbl{padding:8px 16px 7px;font-size:.65rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);background:#faf8f5;border-bottom:1px solid var(--border2)}
 
-  table {
-    width: 100%;
-    border-collapse: collapse;
-    min-width: 820px;
-  }
+/* Steps */
+.si{display:flex;align-items:flex-start;gap:10px;padding:10px 16px;border-bottom:1px solid var(--border2);transition:background .12s}
+.si:last-child{border-bottom:none}
+.si:hover{background:#faf8f5}
+.si.done .sn{color:var(--muted);text-decoration:line-through;text-decoration-color:#ccc}
+.si input[type=checkbox]{appearance:none;-webkit-appearance:none;width:19px;height:19px;min-width:19px;border:1.8px solid #ccc9c4;border-radius:5px;cursor:pointer;position:relative;transition:all .15s;background:var(--bg);margin-top:1px;flex-shrink:0}
+.si input[type=checkbox]:hover{border-color:var(--green)}
+.si input[type=checkbox]:checked{background:var(--green);border-color:var(--green)}
+.si input[type=checkbox]:checked::after{content:'';position:absolute;left:3px;top:1px;width:9px;height:5px;border-left:2px solid #fff;border-bottom:2px solid #fff;transform:rotate(-45deg)}
+.stx{flex:1;min-width:0}
+.sn{font-size:.83rem;display:block;line-height:1.4}
+.sd2{font-size:.71rem;color:var(--muted);display:block;margin-top:1px;line-height:1.4}
+.sr{font-size:.68rem;font-weight:600;color:var(--green-m);display:inline-block;margin-top:2px}
+.ob{display:inline-flex;padding:1px 5px;border-radius:3px;font-size:.62rem;font-weight:600;background:var(--yellow-l);color:var(--yellow);margin-left:5px;vertical-align:middle}
 
-  /* ── Column headers ── */
-  thead th {
-    padding: 14px 14px 12px;
-    text-align: left;
-    font-size: .72rem;
-    font-weight: 600;
-    letter-spacing: .04em;
-    text-transform: uppercase;
-    color: var(--text-muted);
-    border-bottom: 2px solid var(--border);
-    white-space: nowrap;
-  }
-  thead th.step-header {
-    text-align: center;
-    min-width: 100px;
-  }
-  .step-pill {
-    display: inline-flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 4px;
-    font-size: .68rem;
-    line-height: 1.2;
-  }
-  .step-dot {
-    width: 8px; height: 8px;
-    border-radius: 50%;
-    margin: 0 auto;
-  }
+/* GEDI */
+.gedi-row{display:flex;align-items:center;gap:10px;padding:10px 16px;border-bottom:1px solid var(--border2);cursor:pointer;user-select:none;transition:background .12s}
+.gedi-row:hover{background:#faf8f5}
+.gedi-icon{width:19px;height:19px;min-width:19px;border:1.8px solid #ccc9c4;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:.6rem;font-weight:700;flex-shrink:0;transition:all .15s}
+.gedi-icon.g-done{background:var(--green);border-color:var(--green);color:#fff}
+.gedi-icon.g-part{border-color:var(--orange);color:var(--orange)}
+.gedi-tx{flex:1}
+.gedi-nm{font-size:.83rem;font-weight:500}
+.gedi-rs{font-size:.68rem;font-weight:600;color:var(--green-m)}
+.gedi-ct{font-size:.7rem;color:var(--muted);margin-left:auto}
+.gedi-cv{color:var(--muted2);font-size:.7rem;transition:transform .2s;margin-left:4px}
+.gedi-row.gx .gedi-cv{transform:rotate(180deg)}
+.gedi-subs{display:none;background:#faf8f5;border-bottom:1px solid var(--border2)}
+.gedi-row.gx + .gedi-subs{display:block}
+.gsub{display:flex;align-items:flex-start;gap:9px;padding:8px 16px 8px 42px;border-bottom:1px solid var(--border2);transition:background .12s}
+.gsub:last-child{border-bottom:none}
+.gsub:hover{background:#f4f2ee}
+.gsub input[type=checkbox]{appearance:none;-webkit-appearance:none;width:17px;height:17px;min-width:17px;border:1.8px solid #ccc9c4;border-radius:4px;cursor:pointer;position:relative;transition:all .15s;background:var(--white);flex-shrink:0;margin-top:1px}
+.gsub input[type=checkbox]:hover{border-color:var(--green-m)}
+.gsub input[type=checkbox]:checked{background:var(--green-m);border-color:var(--green-m)}
+.gsub input[type=checkbox]:checked::after{content:'';position:absolute;left:2.5px;top:.5px;width:8px;height:4.5px;border-left:1.8px solid #fff;border-bottom:1.8px solid #fff;transform:rotate(-45deg)}
+.gsub.done span{color:var(--muted);text-decoration:line-through;text-decoration-color:#ccc}
+.gsub span{font-size:.81rem}
 
-  /* ── Body rows ── */
-  tbody tr {
-    border-bottom: 1px solid var(--border);
-    transition: background .15s;
-  }
-  tbody tr:last-child { border-bottom: none; }
-  tbody tr:hover { background: var(--surface2); }
+/* Empty */
+.empty{text-align:center;padding:52px 20px;color:var(--muted)}
+.empty-icon{font-size:2.8rem;opacity:.25;margin-bottom:10px}
+.empty p{font-size:.86rem}
 
-  td {
-    padding: 13px 14px;
-    font-size: .875rem;
-    vertical-align: middle;
-  }
+/* Archive */
+.arch-btn{display:flex;align-items:center;gap:7px;background:none;border:none;color:var(--muted);font-family:'Inter',sans-serif;font-size:.8rem;font-weight:500;cursor:pointer;padding:7px 10px;border-radius:8px;margin-top:22px;transition:background .15s}
+.arch-btn:hover{background:var(--border)}
+.arch-btn .ac{transition:transform .2s}
+.arch-btn.ao .ac{transform:rotate(90deg)}
+.arch-list{display:none;flex-direction:column;gap:8px;margin-top:10px}
+.arch-list.av{display:flex}
+.acard{background:var(--white);border:1px solid var(--border);border-radius:var(--r);padding:12px 16px;display:flex;align-items:center;justify-content:space-between;gap:10px;opacity:.72}
+.acl{display:flex;align-items:center;gap:9px}
+.aav{width:32px;height:32px;background:var(--green-l);color:var(--green);border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:700}
+.an{font-weight:600;font-size:.86rem}
+.ad{font-size:.7rem;color:var(--muted)}
+.abadge{display:inline-flex;align-items:center;gap:3px;background:var(--green-l);color:var(--green);font-size:.66rem;font-weight:600;padding:2px 7px;border-radius:10px}
 
-  /* ── Name cell ── */
-  .name-cell {
-    font-weight: 600;
-    min-width: 160px;
-  }
-  .name-sub {
-    font-size: .72rem;
-    font-weight: 400;
-    color: var(--text-muted);
-    margin-top: 2px;
-  }
+/* Modal */
+.mo{position:fixed;inset:0;background:rgba(0,0,0,.38);display:flex;align-items:center;justify-content:center;z-index:100;opacity:0;pointer-events:none;transition:opacity .2s;padding:16px}
+.mo.show{opacity:1;pointer-events:all}
+.modal{background:var(--white);border-radius:14px;padding:26px 26px 22px;width:100%;max-width:390px;box-shadow:0 20px 60px rgba(0,0,0,.18);transform:translateY(8px);transition:transform .2s}
+.mo.show .modal{transform:translateY(0)}
+.modal h2{font-size:1.05rem;font-weight:700;margin-bottom:5px}
+.modal>.sub{font-size:.8rem;color:var(--muted);margin-bottom:18px}
+.fg{margin-bottom:12px}
+.fg label{display:block;font-size:.75rem;font-weight:600;margin-bottom:4px}
+.fg input,.fg select{width:100%;padding:9px 11px;border:1.5px solid var(--border);border-radius:7px;font-family:'Inter',sans-serif;font-size:.875rem;background:var(--bg);color:var(--text);transition:border-color .15s}
+.fg input:focus,.fg select:focus{outline:none;border-color:var(--green)}
+.ma{display:flex;gap:8px;justify-content:flex-end;margin-top:18px}
 
-  /* ── Progress bar ── */
-  .progress-cell { min-width: 110px; }
-  .progress-bar-bg {
-    height: 5px;
-    border-radius: 3px;
-    background: var(--surface2);
-    overflow: hidden;
-    margin-bottom: 3px;
-  }
-  .progress-bar-fill {
-    height: 100%;
-    border-radius: 3px;
-    background: var(--accent);
-    transition: width .4s ease;
-  }
-  .progress-label {
-    font-size: .68rem;
-    color: var(--text-muted);
-  }
+/* Toast */
+.toast{position:fixed;bottom:18px;right:18px;background:var(--text);color:#fff;padding:9px 15px;border-radius:8px;font-size:.78rem;font-weight:500;box-shadow:0 4px 18px rgba(0,0,0,.22);transform:translateY(16px);opacity:0;transition:all .25s;z-index:200;pointer-events:none}
+.toast.show{transform:translateY(0);opacity:1}
 
-  /* ── Step cells ── */
-  td.step-cell { text-align: center; }
-  .check-wrap {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-  }
-  .check-wrap input[type=checkbox] {
-    appearance: none;
-    -webkit-appearance: none;
-    width: 22px; height: 22px;
-    border: 2px solid var(--border);
-    border-radius: 6px;
-    cursor: pointer;
-    position: relative;
-    transition: all .18s;
-    background: var(--bg);
-    flex-shrink: 0;
-  }
-  .check-wrap input[type=checkbox]:hover:not(:disabled) {
-    border-color: var(--accent);
-  }
-  .check-wrap input[type=checkbox]:checked {
-    background: var(--accent);
-    border-color: var(--accent);
-  }
-  .check-wrap input[type=checkbox]:checked::after {
-    content: '';
-    position: absolute;
-    left: 4px; top: 1px;
-    width: 10px; height: 6px;
-    border-left: 2.5px solid #fff;
-    border-bottom: 2.5px solid #fff;
-    transform: rotate(-45deg);
-  }
-  .check-wrap input[type=checkbox]:disabled {
-    opacity: .4;
-    cursor: default;
-  }
-  /* auto-checked (step created) */
-  .check-wrap input[type=checkbox].auto-done {
-    background: var(--step5);
-    border-color: var(--step5);
-    cursor: default;
-  }
+/* Footer link */
+.foot{position:fixed;bottom:14px;left:14px;background:var(--white);border:1px solid var(--border);border-radius:7px;padding:5px 11px;font-size:.7rem;color:var(--muted);cursor:pointer;transition:background .15s;display:flex;align-items:center;gap:4px}
+.foot:hover{background:var(--bg)}
 
-  /* ── Actions cell ── */
-  .actions-cell { min-width: 90px; }
-  .btn-archive {
-    background: var(--accent2-light);
-    color: var(--accent2);
-    border: 1px solid #f0c4b8;
-    border-radius: 6px;
-    padding: 5px 12px;
-    font-size: .75rem;
-    font-weight: 600;
-    cursor: pointer;
-    font-family: 'DM Sans', sans-serif;
-    transition: background .15s;
-  }
-  .btn-archive:hover { background: #fad4cb; }
-  .btn-delete {
-    background: none;
-    color: var(--text-muted);
-    border: none;
-    cursor: pointer;
-    padding: 4px;
-    border-radius: 4px;
-    transition: color .15s;
-    line-height: 0;
-  }
-  .btn-delete:hover { color: #c0392b; }
-
-  /* ── Empty state ── */
-  .empty-state {
-    text-align: center;
-    padding: 56px 20px;
-    color: var(--text-muted);
-  }
-  .empty-state svg { opacity: .25; margin-bottom: 12px; }
-  .empty-state p { font-size: .9rem; }
-
-  /* ── Archive section ── */
-  .archive-toggle {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    background: none;
-    border: none;
-    color: var(--text-muted);
-    font-family: 'DM Sans', sans-serif;
-    font-size: .82rem;
-    font-weight: 500;
-    cursor: pointer;
-    margin-top: 24px;
-    margin-bottom: 12px;
-    padding: 6px 10px;
-    border-radius: 6px;
-    transition: background .15s;
-  }
-  .archive-toggle:hover { background: var(--border); }
-  .archive-toggle .caret { transition: transform .2s; font-size: .7rem; }
-  .archive-toggle.open .caret { transform: rotate(90deg); }
-
-  .archive-table-wrap {
-    background: var(--surface);
-    border-radius: var(--radius);
-    box-shadow: var(--shadow);
-    overflow-x: auto;
-    border: 1px solid var(--border);
-    opacity: .75;
-  }
-  .archived-row td { color: var(--text-muted); }
-  .archived-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    background: var(--accent-light);
-    color: var(--accent);
-    font-size: .68rem;
-    font-weight: 600;
-    padding: 2px 8px;
-    border-radius: 10px;
-  }
-
-  /* ── Modal ── */
-  .modal-overlay {
-    position: fixed; inset: 0;
-    background: rgba(0,0,0,.35);
-    display: flex; align-items: center; justify-content: center;
-    z-index: 100;
-    opacity: 0; pointer-events: none;
-    transition: opacity .2s;
-  }
-  .modal-overlay.visible { opacity: 1; pointer-events: all; }
-  .modal {
-    background: var(--surface);
-    border-radius: 14px;
-    padding: 28px 28px 24px;
-    width: 100%; max-width: 420px;
-    box-shadow: 0 20px 60px rgba(0,0,0,.2);
-    transform: translateY(8px);
-    transition: transform .2s;
-  }
-  .modal-overlay.visible .modal { transform: translateY(0); }
-  .modal h2 {
-    font-family: 'DM Serif Display', serif;
-    font-size: 1.25rem;
-    margin-bottom: 6px;
-  }
-  .modal p {
-    font-size: .82rem;
-    color: var(--text-muted);
-    margin-bottom: 20px;
-  }
-  .form-group { margin-bottom: 16px; }
-  .form-group label {
-    display: block;
-    font-size: .78rem;
-    font-weight: 600;
-    margin-bottom: 5px;
-    color: var(--text);
-  }
-  .form-group input, .form-group select {
-    width: 100%;
-    padding: 9px 12px;
-    border: 1.5px solid var(--border);
-    border-radius: 8px;
-    font-family: 'DM Sans', sans-serif;
-    font-size: .875rem;
-    background: var(--bg);
-    color: var(--text);
-    transition: border-color .15s;
-  }
-  .form-group input:focus, .form-group select:focus {
-    outline: none;
-    border-color: var(--accent);
-  }
-  .modal-actions {
-    display: flex;
-    gap: 10px;
-    justify-content: flex-end;
-    margin-top: 20px;
-  }
-  .btn-cancel {
-    background: var(--surface2);
-    color: var(--text);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 9px 18px;
-    font-family: 'DM Sans', sans-serif;
-    font-size: .875rem;
-    font-weight: 500;
-    cursor: pointer;
-  }
-  .btn-confirm {
-    background: var(--accent);
-    color: #fff;
-    border: none;
-    border-radius: 8px;
-    padding: 9px 18px;
-    font-family: 'DM Sans', sans-serif;
-    font-size: .875rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: background .15s;
-  }
-  .btn-confirm:hover { background: #245a41; }
-  .btn-confirm:disabled { opacity: .5; cursor: not-allowed; }
-
-  /* ── Toast ── */
-  .toast {
-    position: fixed;
-    bottom: 24px; right: 24px;
-    background: var(--text);
-    color: #fff;
-    padding: 10px 18px;
-    border-radius: 8px;
-    font-size: .82rem;
-    font-weight: 500;
-    box-shadow: 0 4px 20px rgba(0,0,0,.3);
-    transform: translateY(20px);
-    opacity: 0;
-    transition: all .25s;
-    z-index: 200;
-    pointer-events: none;
-  }
-  .toast.show { transform: translateY(0); opacity: 1; }
-
-  /* Responsive */
-  @media (max-width: 600px) {
-    .header { flex-direction: column; }
-    body { padding: 16px 12px 40px; }
-  }
+@media(max-width:520px){
+  #app{padding:14px 10px 70px}
+  .pw{display:none}
+  .sc{padding:28px 20px}
+}
 </style>
 </head>
 <body>
 
-<div class="header">
-  <div class="header-left">
-    <h1>Suivi des Engagements</h1>
-    <p>École Escale — Procédure d'intégration administrative</p>
-    <span class="badge-count" id="active-count">● 0 dossier(s) en cours</span>
-  </div>
-  <button class="btn-add" onclick="openModal()">
-    <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
-    Nouveau membre
-  </button>
-</div>
+<!-- ══════════════════════ SETUP ══════════════════════ -->
+<div id="setup">
+  <div class="sc">
+    <div class="sc-logo">🏫</div>
+    <h1>Suivi des Engagements<br><small style="font-size:.75rem;font-weight:400;color:var(--muted)">École Escale</small></h1>
+    <p class="sub">Pour que toute l'équipe voie les mêmes données en temps réel,<br>connectez une base de données Firebase <strong>gratuite</strong>.</p>
 
-<div class="legend">
-  <span class="legend-item"><span class="legend-dot" style="background:#d0c9c0"></span>Non effectué</span>
-  <span class="legend-item"><span class="legend-dot" style="background:var(--accent)"></span>Effectué</span>
-  <span class="legend-item" style="margin-left:4px;color:#999;font-style:italic">Les coches sont partagées en temps réel</span>
-</div>
+    <div class="sc-steps">
+      <div class="ss"><span class="n">1</span><div>Ouvrez <a href="https://console.firebase.google.com" target="_blank">console.firebase.google.com</a> et connectez-vous avec un compte Google</div></div>
+      <div class="ss"><span class="n">2</span><div>Cliquez <strong>Créer un projet</strong> → donnez un nom (ex&nbsp;: <em>escale-rh</em>) → désactivez Google Analytics → Créer</div></div>
+      <div class="ss"><span class="n">3</span><div>Menu gauche : <strong>Build → Realtime Database → Create Database</strong> → région <strong>europe-west1</strong> → <strong>Start in test mode</strong> → Enable</div></div>
+      <div class="ss"><span class="n">4</span><div>Dans <strong>Realtime Database → Rules</strong>, remplacez les règles par celles-ci et cliquez <strong>Publish</strong> :</div></div>
+    </div>
 
-<div class="table-wrap">
-  <table>
-    <thead>
-      <tr>
-        <th style="min-width:170px">Membre du personnel</th>
-        <th>Progression</th>
-        <th class="step-header">
-          <div class="step-pill">
-            <span class="step-dot" style="background:var(--step1)"></span>
-            <span>Notification</span>
-            <span style="font-weight:400;color:#aaa">Direction</span>
-          </div>
-        </th>
-        <th class="step-header">
-          <div class="step-pill">
-            <span class="step-dot" style="background:var(--step2)"></span>
-            <span>Adresse mail PRO</span>
-            <span style="font-weight:400;color:#aaa">Cédric</span>
-          </div>
-        </th>
-        <th class="step-header">
-          <div class="step-pill">
-            <span class="step-dot" style="background:var(--step3)"></span>
-            <span>Formulaire envoyé</span>
-            <span style="font-weight:400;color:#aaa">Olivia / Olivier</span>
-          </div>
-        </th>
-        <th class="step-header">
-          <div class="step-pill">
-            <span class="step-dot" style="background:var(--step4)"></span>
-            <span>Documents récoltés</span>
-            <span style="font-weight:400;color:#aaa">Olivia / Olivier</span>
-          </div>
-        </th>
-        <th class="step-header">
-          <div class="step-pill">
-            <span class="step-dot" style="background:var(--step5)"></span>
-            <span>Photo + listing</span>
-            <span style="font-weight:400;color:#aaa">Cédric</span>
-          </div>
-        </th>
-        <th class="step-header">
-          <div class="step-pill">
-            <span class="step-dot" style="background:var(--accent2)"></span>
-            <span>Mail bienvenue</span>
-            <span style="font-weight:400;color:#aaa">Aurore / Olivier</span>
-          </div>
-        </th>
-        <th style="min-width:100px">Actions</th>
-      </tr>
-    </thead>
-    <tbody id="active-tbody">
-      <!-- rows injected by JS -->
-    </tbody>
-  </table>
-  <div class="empty-state" id="empty-state" style="display:none">
-    <svg width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
-      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-    </svg>
-    <p>Aucun dossier en cours.<br>Cliquez sur <strong>Nouveau membre</strong> pour commencer.</p>
+    <div class="sc-rules">
+      <strong>Règles Firebase à coller</strong>
+      <code>{ "rules": { ".read": true, ".write": true } }</code>
+    </div>
+
+    <div class="sc-steps" style="margin-top:-8px;margin-bottom:18px">
+      <div class="ss"><span class="n">5</span><div>Revenez sur <strong>Realtime Database → Data</strong>, copiez l'URL affichée (ex&nbsp;: <code>https://escale-rh-default-rtdb.europe-west1.firebasedatabase.app</code>)</div></div>
+      <div class="ss"><span class="n">6</span><div>Collez cette URL ci-dessous. <strong>Chaque collaborateur devra faire cette étape une seule fois</strong> sur son navigateur.</div></div>
+    </div>
+
+    <div class="sc-form">
+      <input type="url" id="db-url-input" placeholder="https://votre-projet-default-rtdb.europe-west1.firebasedatabase.app" oninput="chkUrl()"/>
+      <button class="btn btn-green" id="connect-btn" onclick="doConnect()" disabled>Connecter</button>
+    </div>
+    <div id="setup-err"></div>
+    <p class="sc-note">L'URL est enregistrée uniquement dans ce navigateur. Les données restent dans votre base Firebase.</p>
   </div>
 </div>
 
-<!-- Archive section -->
-<button class="archive-toggle" id="archive-toggle" onclick="toggleArchive()" style="display:none">
-  <span class="caret">▶</span>
-  <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 8v13H3V8"/><path d="M1 3h22v5H1z"/><path d="M10 12h4"/></svg>
-  Dossiers archivés (<span id="archive-count">0</span>)
-</button>
-<div id="archive-section" style="display:none">
-  <div class="archive-table-wrap">
-    <table>
-      <thead>
-        <tr>
-          <th>Membre du personnel</th>
-          <th>Archivé le</th>
-          <th>Statut</th>
-          <th></th>
-        </tr>
-      </thead>
-      <tbody id="archive-tbody"></tbody>
-    </table>
+<!-- ══════════════════════ APP ════════════════════════ -->
+<div id="app">
+  <div class="app-header">
+    <div class="ah-left">
+      <h1>École Escale — Suivi des Engagements</h1>
+      <p>Procédure d'intégration du personnel</p>
+      <div class="ct-badge" id="ct-badge">● 0 dossier en cours</div>
+    </div>
+    <div class="ah-right">
+      <div class="sync-wrap">
+        <div class="sd waiting" id="sd"></div>
+        <span id="sl">Connexion…</span>
+      </div>
+      <button class="btn btn-green" onclick="openModal()">+ Nouveau MdP</button>
+    </div>
+  </div>
+
+  <div id="persons-list"></div>
+  <div id="empty-msg" class="empty" style="display:none">
+    <div class="empty-icon">👥</div>
+    <p>Aucun dossier en cours.<br>Cliquez sur <strong>+ Nouveau MdP</strong> pour commencer.</p>
+  </div>
+
+  <div id="arch-section" style="display:none">
+    <button class="arch-btn" id="arch-toggle" onclick="toggleArch()">
+      <span class="ac">▶</span> 📁 Dossiers archivés — <span id="arch-ct">0</span>
+    </button>
+    <div class="arch-list" id="arch-list"></div>
   </div>
 </div>
 
-<!-- Modal -->
-<div class="modal-overlay" id="modal-overlay" onclick="handleOverlayClick(event)">
+<!-- ══════════════════════ MODAL ══════════════════════ -->
+<div class="mo" id="modal-overlay" onclick="ovClick(event)">
   <div class="modal">
     <h2>Nouveau membre du personnel</h2>
-    <p>Remplissez les informations du nouveau collaborateur. La ligne sera créée avec l'étape «&nbsp;Adresse mail PRO&nbsp;» cochée automatiquement.</p>
-    <div class="form-group">
-      <label>Nom complet *</label>
-      <input type="text" id="input-name" placeholder="Prénom Nom" oninput="validateForm()"/>
-    </div>
-    <div class="form-group">
-      <label>École</label>
-      <select id="input-school">
+    <p class="sub">Créez un dossier de suivi pour le nouveau collaborateur.</p>
+    <div class="fg"><label>Nom complet *</label><input type="text" id="in-name" placeholder="Prénom Nom" oninput="chkModal()"/></div>
+    <div class="fg"><label>Implantation</label>
+      <select id="in-school">
         <option value="">— Sélectionner —</option>
-        <option value="ES1">ES1 – Secondaire</option>
-        <option value="ES2">ES2 – Secondaire</option>
-        <option value="EF1">EF1 – Fondamental</option>
-        <option value="EF2">EF2 – Fondamental</option>
+        <option>Secondaire</option>
+        <option>Fondamental</option>
+        <option>Secondaire + Fondamental</option>
       </select>
     </div>
-    <div class="form-group">
-      <label>Adresse mail PRO créée</label>
-      <input type="email" id="input-email" placeholder="prenom.nom@escale.be"/>
-    </div>
-    <div class="modal-actions">
-      <button class="btn-cancel" onclick="closeModal()">Annuler</button>
-      <button class="btn-confirm" id="btn-confirm" onclick="addPerson()" disabled>Créer le dossier</button>
+    <div class="fg"><label>Remarque</label><input type="text" id="in-note" placeholder="ex : Remplacement, mi-temps…"/></div>
+    <div class="ma">
+      <button class="btn btn-ghost" onclick="closeModal()">Annuler</button>
+      <button class="btn btn-green" id="modal-ok" onclick="addPerson()" disabled>Créer le dossier</button>
     </div>
   </div>
 </div>
 
-<!-- Toast -->
 <div class="toast" id="toast"></div>
+<div class="foot" onclick="resetCfg()">⚙️ Changer la connexion Firebase</div>
 
 <script>
-// ── Storage key ──────────────────────────────────────────────
-const KEY = 'escale_onboarding_v2';
-const KEY_ARCHIVE = 'escale_onboarding_archive_v2';
-
-// Steps definition
+// ══════════════════════════════════════════════
+//  STEPS DATA
+// ══════════════════════════════════════════════
 const STEPS = [
-  { id: 'notification',  label: 'Notification',     auto: false },
-  { id: 'mail_pro',      label: 'Adresse mail PRO', auto: true  }, // auto-checked on creation
-  { id: 'formulaire',    label: 'Formulaire envoyé',auto: false },
-  { id: 'documents',     label: 'Documents récoltés',auto: false},
-  { id: 'photo',         label: 'Photo + listing',  auto: false },
-  { id: 'bienvenue',     label: 'Mail bienvenue',   auto: false },
+  {id:'s01',lbl:'Demande de création d\'adresse',det:'À Cédric + secrétariat en copie',resp:'Direction'},
+  {id:'s02',lbl:'Création de l\'adresse mail PRO',det:'',resp:'Cédric'},
+  {id:'s03',lbl:'Envoi du mail d\'activation au MdP',det:'Cc : Secrétariat et Direction',resp:'Cédric'},
+  {id:'s04',lbl:'Confirmation d\'activation par le MdP',det:'Le MdP envoie un mail au secrétariat',resp:'Nouveau MdP'},
+  {id:'s05',lbl:'Mail de documentation pour les nouveaux MdP',det:'',resp:'Aurore'},
+  {id:'s06',lbl:'Mail avec le formulaire Google Forms',det:'',resp:'Secrétariat'},
+  {id:'s07',lbl:'Dossier drive + réponses Forms + liste MdP',det:'Création dossier drive, ajout réponses Forms, mise à jour liste',resp:'Secrétariat'},
+  {id:'s08',lbl:'Création dans PROECO',det:'',resp:'Secrétariat'},
+  {id:'s09',lbl:'Prestation de serment',det:'Nouveau dans l\'enseignement',resp:'Direction',opt:true},
+  {id:'s10',lbl:'Services antérieurs',det:'Ancien dans l\'enseignement',resp:'Secrétariat',opt:true},
+  {id:'s11',lbl:'SEC12',det:'',resp:'Secrétariat'},
+  {id:'s12',lbl:'Documents GEDI',det:'',resp:'Secrétariat',gedi:true},
+  {id:'s13',lbl:'Dimona',det:'',resp:'Secrétariat'},
+  {id:'s14',lbl:'Contrat + charte de confidentialité + farde',det:'Contrat, charte de confidentialité, farde nouveaux enseignants',resp:'Secrétariat'},
+  {id:'s15',lbl:'CESI → Mireille',det:'Nom, prénom, Niss, Adresse, Téléphone, Date d\'entrée, implantations',resp:'Mireille'},
+  {id:'s16',lbl:'Tableau des heures utilisées',det:'Obligatoirement avec la direction',resp:'Direction'},
 ];
-const STEP_COLORS = ['var(--step1)','var(--step2)','var(--step3)','var(--step4)','var(--step5)','var(--accent2)'];
 
-// ── State ────────────────────────────────────────────────────
-let persons = [];
-let archived = [];
-let archiveOpen = false;
+const GEDI = [
+  {id:'g01',lbl:'Fiche signalétique'},
+  {id:'g02',lbl:'Diplômes'},
+  {id:'g03',lbl:'Extrait de casier judiciaire'},
+  {id:'g04',lbl:'Prestation de serment (si nécessaire)'},
+  {id:'g05',lbl:'Composition de ménage (pas obligatoire)'},
+  {id:'g06',lbl:'Récapitulatif des services antérieurs (si nécessaire)'},
+  {id:'g07',lbl:'Services rendus (1 seul PDF)'},
+  {id:'g08',lbl:'SEC12'},
+  {id:'g09',lbl:'PV de carence (TPNL)',opt:true},
+];
 
-// ── Persistence ──────────────────────────────────────────────
-async function loadData() {
-  try {
-    const r1 = await window.storage.get(KEY);
-    if (r1) persons = JSON.parse(r1.value);
-  } catch(e) { persons = []; }
-  try {
-    const r2 = await window.storage.get(KEY_ARCHIVE);
-    if (r2) archived = JSON.parse(r2.value);
-  } catch(e) { archived = []; }
-  render();
+// ══════════════════════════════════════════════
+//  STATE
+// ══════════════════════════════════════════════
+let DB = localStorage.getItem('escale_db_v3') || '';
+let state = {persons:{}, archived:{}};
+let sse = null;
+let expanded = new Set();
+let gExpanded = new Set();
+let archOpen = false;
+
+// ══════════════════════════════════════════════
+//  INIT
+// ══════════════════════════════════════════════
+window.addEventListener('load', () => {
+  if (DB) { showApp(); connect(); }
+  else showSetup();
+});
+
+function showSetup() {
+  document.getElementById('setup').style.display = 'flex';
+  document.getElementById('app').style.display = 'none';
+}
+function showApp() {
+  document.getElementById('setup').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
 }
 
-async function saveData() {
-  try {
-    await window.storage.set(KEY, JSON.stringify(persons));
-    await window.storage.set(KEY_ARCHIVE, JSON.stringify(archived));
-  } catch(e) { console.warn('Storage error', e); }
+// ══════════════════════════════════════════════
+//  FIREBASE REST
+// ══════════════════════════════════════════════
+const base = () => DB.replace(/\/$/,'');
+
+async function fbGet(p) {
+  const r = await fetch(`${base()}/${p}.json`);
+  if(!r.ok) throw new Error(r.status);
+  return r.json();
+}
+async function fbPut(p,v) {
+  const r = await fetch(`${base()}/${p}.json`,{method:'PUT',body:JSON.stringify(v),headers:{'Content-Type':'application/json'}});
+  if(!r.ok) throw new Error(r.status);
+  return r.json();
+}
+async function fbPatch(p,v) {
+  const r = await fetch(`${base()}/${p}.json`,{method:'PATCH',body:JSON.stringify(v),headers:{'Content-Type':'application/json'}});
+  if(!r.ok) throw new Error(r.status);
+  return r.json();
+}
+async function fbPost(p,v) {
+  const r = await fetch(`${base()}/${p}.json`,{method:'POST',body:JSON.stringify(v),headers:{'Content-Type':'application/json'}});
+  if(!r.ok) throw new Error(r.status);
+  return r.json();
+}
+async function fbDel(p) {
+  const r = await fetch(`${base()}/${p}.json`,{method:'DELETE'});
+  if(!r.ok) throw new Error(r.status);
 }
 
-// ── Render ───────────────────────────────────────────────────
-function render() {
-  renderActive();
-  renderArchive();
-  document.getElementById('active-count').textContent =
-    `● ${persons.length} dossier${persons.length !== 1 ? 's' : ''} en cours`;
+// ══════════════════════════════════════════════
+//  SSE REAL-TIME CONNECTION
+// ══════════════════════════════════════════════
+function sync(st, lbl) {
+  document.getElementById('sd').className = 'sd ' + st;
+  document.getElementById('sl').textContent = lbl;
 }
 
-function renderActive() {
-  const tbody = document.getElementById('active-tbody');
-  const empty = document.getElementById('empty-state');
-  tbody.innerHTML = '';
-  if (persons.length === 0) {
-    empty.style.display = '';
+function connect() {
+  if (sse) { sse.close(); sse = null; }
+  sync('waiting','Connexion…');
+
+  sse = new EventSource(`${base()}/escale.json`);
+
+  sse.addEventListener('put', e => {
+    try {
+      const {path, data:d} = JSON.parse(e.data);
+      applyPut(path, d);
+      sync('ok','Synchronisé ✓');
+      render();
+    } catch(err) { console.warn('sse put err', err); }
+  });
+
+  sse.addEventListener('patch', e => {
+    try {
+      const {path, data:d} = JSON.parse(e.data);
+      applyPatch(path, d);
+      render();
+    } catch(err) { console.warn('sse patch err', err); }
+  });
+
+  sse.onerror = () => {
+    sync('err','Déconnecté — reconnexion…');
+    sse.close();
+    setTimeout(connect, 6000);
+  };
+}
+
+function applyPut(path, val) {
+  if (path === '/') {
+    state = val || {persons:{},archived:{}};
+    if (!state.persons) state.persons = {};
+    if (!state.archived) state.archived = {};
     return;
   }
-  empty.style.display = 'none';
-
-  persons.forEach(p => {
-    const done = STEPS.filter(s => p.steps[s.id]).length;
-    const pct = Math.round((done / STEPS.length) * 100);
-    const allDone = done === STEPS.length;
-
-    const tr = document.createElement('tr');
-    // Name
-    tr.innerHTML = `
-      <td class="name-cell">
-        ${esc(p.name)}
-        <div class="name-sub">${esc(p.school || '')}${p.email ? ' · ' + esc(p.email) : ''}</div>
-      </td>
-      <td class="progress-cell">
-        <div class="progress-bar-bg">
-          <div class="progress-bar-fill" style="width:${pct}%"></div>
-        </div>
-        <div class="progress-label">${done}/${STEPS.length} étapes</div>
-      </td>
-      ${STEPS.map((s, i) => `
-        <td class="step-cell">
-          <div class="check-wrap">
-            <input type="checkbox"
-              ${p.steps[s.id] ? 'checked' : ''}
-              ${s.auto ? 'class="auto-done" title="Effectué automatiquement à la création"' : ''}
-              data-pid="${p.id}" data-step="${s.id}"
-              onchange="toggleStep('${p.id}','${s.id}',this)"
-              ${s.auto ? 'disabled' : ''}
-            />
-          </div>
-        </td>
-      `).join('')}
-      <td class="actions-cell">
-        ${allDone
-          ? `<button class="btn-archive" onclick="archivePerson('${p.id}')">Archiver</button>`
-          : `<span style="font-size:.72rem;color:var(--text-muted)">${100-pct}% restant</span>`
-        }
-        <button class="btn-delete" onclick="deletePerson('${p.id}')" title="Supprimer">
-          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-            <path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/>
-          </svg>
-        </button>
-      </td>
-    `;
-    tbody.appendChild(tr);
-  });
-}
-
-function renderArchive() {
-  const tbody = document.getElementById('archive-tbody');
-  const toggle = document.getElementById('archive-toggle');
-  const section = document.getElementById('archive-section');
-  document.getElementById('archive-count').textContent = archived.length;
-
-  if (archived.length === 0) {
-    toggle.style.display = 'none';
-    section.style.display = 'none';
-    return;
+  const parts = path.split('/').filter(Boolean);
+  let ref = state;
+  for (let i = 0; i < parts.length-1; i++) {
+    if (ref[parts[i]] == null) ref[parts[i]] = {};
+    ref = ref[parts[i]];
   }
-  toggle.style.display = '';
-
-  tbody.innerHTML = '';
-  archived.forEach(p => {
-    const tr = document.createElement('tr');
-    tr.className = 'archived-row';
-    tr.innerHTML = `
-      <td><strong>${esc(p.name)}</strong><div class="name-sub">${esc(p.school||'')}${p.email?' · '+esc(p.email):''}</div></td>
-      <td style="font-size:.78rem;color:var(--text-muted)">${p.archivedAt || '—'}</td>
-      <td><span class="archived-badge">✓ Dossier complet</span></td>
-      <td>
-        <button class="btn-delete" onclick="deleteArchived('${p.id}')" title="Supprimer définitivement">
-          <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-            <path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/>
-          </svg>
-        </button>
-      </td>
-    `;
-    tbody.appendChild(tr);
-  });
+  ref[parts[parts.length-1]] = val;
 }
 
-// ── Actions ──────────────────────────────────────────────────
-function toggleStep(pid, stepId, el) {
-  const p = persons.find(x => x.id === pid);
-  if (!p) return;
-  p.steps[stepId] = el.checked;
-  saveData();
-  render();
-  showToast(el.checked ? `✓ Étape "${STEPS.find(s=>s.id===stepId)?.label}" marquée` : `Étape décochée`);
+function applyPatch(path, changes) {
+  if (!changes) return;
+  const parts = path === '/' ? [] : path.split('/').filter(Boolean);
+  let ref = state;
+  for (const p of parts) {
+    if (ref[p] == null) ref[p] = {};
+    ref = ref[p];
+  }
+  Object.assign(ref, changes);
 }
 
-function archivePerson(pid) {
-  const idx = persons.findIndex(x => x.id === pid);
-  if (idx < 0) return;
-  const p = persons.splice(idx, 1)[0];
-  p.archivedAt = new Date().toLocaleDateString('fr-BE', {day:'2-digit',month:'2-digit',year:'numeric'});
-  archived.unshift(p);
-  saveData();
-  render();
-  showToast(`📁 Dossier de ${p.name} archivé`);
-}
-
-function deletePerson(pid) {
-  if (!confirm('Supprimer ce dossier ?')) return;
-  persons = persons.filter(x => x.id !== pid);
-  saveData();
-  render();
-  showToast('Dossier supprimé');
-}
-
-function deleteArchived(pid) {
-  if (!confirm('Supprimer définitivement ce dossier archivé ?')) return;
-  archived = archived.filter(x => x.id !== pid);
-  saveData();
-  render();
-  showToast('Dossier supprimé');
-}
-
-function toggleArchive() {
-  archiveOpen = !archiveOpen;
-  const btn = document.getElementById('archive-toggle');
-  const sec = document.getElementById('archive-section');
-  btn.classList.toggle('open', archiveOpen);
-  sec.style.display = archiveOpen ? '' : 'none';
-}
-
-// ── Modal ────────────────────────────────────────────────────
-function openModal() {
-  document.getElementById('modal-overlay').classList.add('visible');
-  document.getElementById('input-name').value = '';
-  document.getElementById('input-school').value = '';
-  document.getElementById('input-email').value = '';
-  document.getElementById('btn-confirm').disabled = true;
-  setTimeout(() => document.getElementById('input-name').focus(), 100);
-}
-function closeModal() {
-  document.getElementById('modal-overlay').classList.remove('visible');
-}
-function handleOverlayClick(e) {
-  if (e.target === document.getElementById('modal-overlay')) closeModal();
-}
-function validateForm() {
-  const name = document.getElementById('input-name').value.trim();
-  document.getElementById('btn-confirm').disabled = name.length < 2;
-}
-
-function addPerson() {
-  const name   = document.getElementById('input-name').value.trim();
-  const school = document.getElementById('input-school').value;
-  const email  = document.getElementById('input-email').value.trim();
+// ══════════════════════════════════════════════
+//  ACTIONS
+// ══════════════════════════════════════════════
+async function addPerson() {
+  const name = document.getElementById('in-name').value.trim();
+  const school = document.getElementById('in-school').value;
+  const note = document.getElementById('in-note').value.trim();
   if (!name) return;
 
   const steps = {};
-  STEPS.forEach(s => { steps[s.id] = s.auto; });
+  STEPS.forEach(s => { if (!s.gedi) steps[s.id] = false; });
+  GEDI.forEach(g => { steps[g.id] = false; });
 
-  persons.push({
-    id: Date.now().toString(),
-    name, school, email,
-    createdAt: new Date().toLocaleDateString('fr-BE'),
-    steps
-  });
+  const person = { name, school, note, createdAt: now(), steps };
 
-  saveData();
-  render();
-  closeModal();
-  showToast(`✓ Dossier de ${name} créé`);
+  try {
+    await fbPost('escale/persons', person);
+    closeModal();
+    toast('✓ Dossier créé pour ' + name);
+  } catch(e) {
+    toast('❌ Erreur de création — vérifiez Firebase');
+  }
 }
 
-// ── Toast ────────────────────────────────────────────────────
+async function toggleStep(pid, sid, checked, e) {
+  if (e) e.stopPropagation();
+  try {
+    await fbPatch(`escale/persons/${pid}/steps`, {[sid]: checked});
+  } catch(err) {
+    toast('❌ Erreur de synchronisation');
+  }
+}
+
+async function doArchive(pid, e) {
+  if (e) e.stopPropagation();
+  const p = state.persons[pid];
+  if (!p) return;
+  const pp = {...p, archivedAt: now()};
+  try {
+    await fbPut(`escale/archived/${pid}`, pp);
+    await fbDel(`escale/persons/${pid}`);
+    toast('📁 ' + p.name + ' archivé');
+  } catch(err) {
+    toast('❌ Erreur lors de l\'archivage');
+  }
+}
+
+async function doDelete(pid, e) {
+  if (e) e.stopPropagation();
+  const p = state.persons[pid];
+  if (!confirm('Supprimer le dossier de ' + (p?.name||'cette personne') + ' ?')) return;
+  try {
+    await fbDel(`escale/persons/${pid}`);
+    toast('Dossier supprimé');
+  } catch(err) { toast('❌ Erreur'); }
+}
+
+async function doDeleteArch(pid) {
+  if (!confirm('Supprimer définitivement ?')) return;
+  try {
+    await fbDel(`escale/archived/${pid}`);
+    toast('Supprimé');
+  } catch(err) { toast('❌ Erreur'); }
+}
+
+// ══════════════════════════════════════════════
+//  PROGRESS
+// ══════════════════════════════════════════════
+function progress(person) {
+  const s = person.steps || {};
+  let done = 0;
+  for (const step of STEPS) {
+    if (step.gedi) {
+      if (GEDI.every(g => s[g.id])) done++;
+    } else {
+      if (s[step.id]) done++;
+    }
+  }
+  return done;
+}
+
+function canArchive(person) {
+  // Archive when all non-optional steps are done
+  const s = person.steps || {};
+  for (const step of STEPS) {
+    if (step.opt) continue;
+    if (step.gedi) { if (!GEDI.filter(g => !g.opt).every(g => s[g.id])) return false; }
+    else { if (!s[step.id]) return false; }
+  }
+  return true;
+}
+
+// ══════════════════════════════════════════════
+//  RENDER
+// ══════════════════════════════════════════════
+function render() {
+  const persons = state.persons || {};
+  const ids = Object.keys(persons);
+
+  document.getElementById('ct-badge').textContent =
+    '● ' + ids.length + ' dossier' + (ids.length !== 1 ? 's' : '') + ' en cours';
+  document.getElementById('empty-msg').style.display = ids.length === 0 ? '' : 'none';
+
+  document.getElementById('persons-list').innerHTML =
+    ids.map(pid => buildCard(pid, persons[pid])).join('');
+
+  renderArch();
+}
+
+function buildCard(pid, p) {
+  const s = p.steps || {};
+  const done = progress(p);
+  const total = STEPS.length;
+  const pct = Math.round(done / total * 100);
+  const ready = canArchive(p);
+  const isOpen = expanded.has(pid);
+  const gOpen = gExpanded.has(pid);
+
+  // Build checklist HTML
+  let cl = '';
+  for (const step of STEPS) {
+    if (step.gedi) {
+      const gdone = GEDI.filter(g => s[g.id]).length;
+      const gRequired = GEDI.filter(g => !g.opt);
+      const gall = gRequired.every(g => s[g.id]);
+      const icls = gall ? 'g-done' : gdone > 0 ? 'g-part' : '';
+      const ico = gall ? '✓' : gdone > 0 ? gdone : '—';
+      cl += `
+        <div class="gedi-row ${gOpen ? 'gx' : ''}" onclick="tGedi('${pid}')">
+          <div class="gedi-icon ${icls}">${ico}</div>
+          <div class="gedi-tx">
+            <div class="gedi-nm">Documents GEDI</div>
+            <div class="gedi-rs">Secrétariat</div>
+          </div>
+          <span class="gedi-ct">${gdone}/${GEDI.length}</span>
+          <span class="gedi-cv">▼</span>
+        </div>
+        <div class="gedi-subs">
+          ${GEDI.map(g => `
+            <div class="gsub ${s[g.id] ? 'done' : ''}">
+              <input type="checkbox" ${s[g.id] ? 'checked' : ''}
+                onchange="toggleStep('${pid}','${g.id}',this.checked,event)"
+                onclick="event.stopPropagation()"/>
+              <span>${esc(g.lbl)}${g.opt ? '<span class="ob" style="margin-left:5px">Si nécessaire</span>' : ''}</span>
+            </div>
+          `).join('')}
+        </div>`;
+    } else {
+      const chk = !!s[step.id];
+      cl += `
+        <div class="si ${chk ? 'done' : ''} ${step.opt ? '' : ''}">
+          <input type="checkbox" ${chk ? 'checked' : ''}
+            onchange="toggleStep('${pid}','${step.id}',this.checked,event)"
+            onclick="event.stopPropagation()"/>
+          <div class="stx">
+            <span class="sn">${esc(step.lbl)}${step.opt ? '<span class="ob">Si nécessaire</span>' : ''}</span>
+            ${step.det ? `<span class="sd2">${esc(step.det)}</span>` : ''}
+            <span class="sr">▸ ${esc(step.resp)}</span>
+          </div>
+        </div>`;
+    }
+  }
+
+  return `
+    <div class="pcard ${isOpen ? 'open' : ''}" data-pid="${pid}">
+      <div class="ch" onclick="tCard('${pid}')">
+        <div class="cl">
+          <div class="av">${esc(initials(p.name))}</div>
+          <div>
+            <div class="cn">${esc(p.name)}</div>
+            <div class="cm">
+              ${p.school ? `<span class="sb">${esc(p.school)}</span>` : ''}
+              ${p.note ? esc(p.note) + ' · ' : ''}Depuis le ${esc(p.createdAt||'—')}
+            </div>
+          </div>
+        </div>
+        <div class="cr">
+          <div class="pw">
+            <div class="pb-bg"><div class="pb-fill" style="width:${pct}%"></div></div>
+            <div class="pl">${done}/${total} (${pct}%)</div>
+          </div>
+          ${ready ? `<button class="btn btn-arch" onclick="doArchive('${pid}',event)">Archiver ✓</button>` : ''}
+          <button class="btn-del" onclick="doDelete('${pid}',event)" title="Supprimer">✕</button>
+          <span class="chevron">▼</span>
+        </div>
+      </div>
+      <div class="cb">
+        <div class="sec-lbl">Engagement par la direction</div>
+        ${cl}
+      </div>
+    </div>`;
+}
+
+function renderArch() {
+  const arch = state.archived || {};
+  const ids = Object.keys(arch);
+  const sec = document.getElementById('arch-section');
+  const list = document.getElementById('arch-list');
+  document.getElementById('arch-ct').textContent = ids.length;
+  sec.style.display = ids.length ? '' : 'none';
+
+  list.innerHTML = ids.map(id => {
+    const p = arch[id];
+    return `
+      <div class="acard">
+        <div class="acl">
+          <div class="aav">${esc(initials(p.name))}</div>
+          <div>
+            <div class="an">${esc(p.name)}</div>
+            <div class="ad">${p.school ? p.school + ' · ' : ''}Archivé le ${esc(p.archivedAt||'—')}</div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <span class="abadge">✓ Complet</span>
+          <button class="btn-del" onclick="doDeleteArch('${id}')" title="Supprimer">✕</button>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+// ══════════════════════════════════════════════
+//  UI HELPERS
+// ══════════════════════════════════════════════
+function tCard(pid) {
+  expanded.has(pid) ? expanded.delete(pid) : expanded.add(pid);
+  document.querySelector(`[data-pid="${pid}"]`)?.classList.toggle('open', expanded.has(pid));
+}
+
+function tGedi(pid) {
+  gExpanded.has(pid) ? gExpanded.delete(pid) : gExpanded.add(pid);
+  const row = document.querySelector(`[data-pid="${pid}"] .gedi-row`);
+  if (row) row.classList.toggle('gx', gExpanded.has(pid));
+}
+
+function toggleArch() {
+  archOpen = !archOpen;
+  document.getElementById('arch-toggle').classList.toggle('ao', archOpen);
+  document.getElementById('arch-list').classList.toggle('av', archOpen);
+}
+
+// Modal
+function openModal() {
+  document.getElementById('modal-overlay').classList.add('show');
+  document.getElementById('in-name').value = '';
+  document.getElementById('in-school').value = '';
+  document.getElementById('in-note').value = '';
+  document.getElementById('modal-ok').disabled = true;
+  setTimeout(() => document.getElementById('in-name').focus(), 80);
+}
+function closeModal() {
+  document.getElementById('modal-overlay').classList.remove('show');
+}
+function ovClick(e) {
+  if (e.target === document.getElementById('modal-overlay')) closeModal();
+}
+function chkModal() {
+  document.getElementById('modal-ok').disabled =
+    document.getElementById('in-name').value.trim().length < 2;
+}
+
+// Setup
+function chkUrl() {
+  const v = document.getElementById('db-url-input').value.trim();
+  document.getElementById('connect-btn').disabled = !v.startsWith('https://');
+}
+
+async function doConnect() {
+  const url = document.getElementById('db-url-input').value.trim().replace(/\/$/,'');
+  const err = document.getElementById('setup-err');
+  err.style.display = 'none';
+
+  if (!url.startsWith('https://')) {
+    err.textContent = '⚠️ L\'URL doit commencer par https://';
+    err.style.display = 'block';
+    return;
+  }
+
+  try {
+    const r = await fetch(`${url}/escale.json`);
+    if (r.status >= 500) throw new Error('Server error ' + r.status);
+  } catch(e) {
+    err.textContent = '❌ Connexion impossible. Vérifiez l\'URL et les règles de la base Firebase.';
+    err.style.display = 'block';
+    return;
+  }
+
+  DB = url;
+  localStorage.setItem('escale_db_v3', url);
+  showApp();
+  connect();
+}
+
+function resetCfg() {
+  if (!confirm('Modifier la connexion Firebase ?')) return;
+  if (sse) sse.close();
+  localStorage.removeItem('escale_db_v3');
+  DB = '';
+  showSetup();
+}
+
+// Toast
 let toastTimer;
-function showToast(msg) {
+function toast(msg) {
   const t = document.getElementById('toast');
   t.textContent = msg;
   t.classList.add('show');
@@ -809,37 +735,26 @@ function showToast(msg) {
   toastTimer = setTimeout(() => t.classList.remove('show'), 2800);
 }
 
-// ── Utils ────────────────────────────────────────────────────
+// Utils
+function initials(name) {
+  const p = String(name||'').trim().split(/\s+/);
+  if (p.length >= 2) return (p[0][0] + p[p.length-1][0]).toUpperCase();
+  return String(name||'').slice(0,2).toUpperCase();
+}
+function now() {
+  return new Date().toLocaleDateString('fr-BE',{day:'2-digit',month:'2-digit',year:'numeric'});
+}
 function esc(s) {
-  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
-// ── Enter key in modal ───────────────────────────────────────
+// Keyboard
 document.addEventListener('keydown', e => {
   if (e.key === 'Escape') closeModal();
-  if (e.key === 'Enter' && document.getElementById('modal-overlay').classList.contains('visible')) {
-    const btn = document.getElementById('btn-confirm');
-    if (!btn.disabled) addPerson();
+  if (e.key === 'Enter' && document.getElementById('modal-overlay').classList.contains('show')) {
+    if (!document.getElementById('modal-ok').disabled) addPerson();
   }
 });
-
-// ── Init ─────────────────────────────────────────────────────
-if (typeof window.storage !== 'undefined') {
-  loadData();
-} else {
-  // Fallback: localStorage for standalone testing
-  window.storage = {
-    async get(k) {
-      const v = localStorage.getItem(k);
-      return v ? { value: v } : null;
-    },
-    async set(k, v) {
-      localStorage.setItem(k, v);
-      return { value: v };
-    }
-  };
-  loadData();
-}
 </script>
 </body>
 </html>
