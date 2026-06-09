@@ -189,26 +189,29 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
     <div class="sc-steps">
       <div class="ss"><span class="n">1</span><div>Ouvrez <a href="https://console.firebase.google.com" target="_blank">console.firebase.google.com</a> et connectez-vous avec un compte Google</div></div>
       <div class="ss"><span class="n">2</span><div>Cliquez <strong>Créer un projet</strong> → donnez un nom (ex&nbsp;: <em>escale-rh</em>) → désactivez Google Analytics → Créer</div></div>
-      <div class="ss"><span class="n">3</span><div>Menu gauche : <strong>Build → Realtime Database → Create Database</strong> → région <strong>europe-west1</strong> → <strong>Start in test mode</strong> → Enable</div></div>
-      <div class="ss"><span class="n">4</span><div>Dans <strong>Realtime Database → Rules</strong>, remplacez les règles par celles-ci et cliquez <strong>Publish</strong> :</div></div>
+      <div class="ss"><span class="n">3</span><div>Menu gauche : <strong>Développer → Realtime Database → Créer une base de données</strong> → région <strong>europe-west1</strong> → <strong>Démarrer en mode test</strong> → Activer</div></div>
+      <div class="ss"><span class="n">4</span><div>Dans <strong>Realtime Database → Règles</strong>, remplacez les règles par celles-ci et cliquez <strong>Publier</strong> :</div></div>
     </div>
 
     <div class="sc-rules">
-      <strong>Règles Firebase à coller</strong>
-      <code>{ "rules": { ".read": true, ".write": true } }</code>
+      <strong>Règles sécurisées à coller (Realtime Database → Rules)</strong>
+      <code>{ "rules": { ".read": "auth != null", ".write": "auth != null" } }</code>
     </div>
 
     <div class="sc-steps" style="margin-top:-8px;margin-bottom:18px">
-      <div class="ss"><span class="n">5</span><div>Revenez sur <strong>Realtime Database → Data</strong>, copiez l'URL affichée (ex&nbsp;: <code>https://escale-rh-default-rtdb.europe-west1.firebasedatabase.app</code>)</div></div>
-      <div class="ss"><span class="n">6</span><div>Collez cette URL ci-dessous. <strong>Chaque collaborateur devra faire cette étape une seule fois</strong> sur son navigateur.</div></div>
+      <div class="ss"><span class="n">5</span><div>Menu gauche : <strong>Développer → Authentication → Mode de connexion</strong> → clique <strong>Anonyme</strong> → active le toggle → Enregistrer</div></div>
+      <div class="ss"><span class="n">6</span><div>Icône ⚙️ → <strong>Paramètres du projet → Général</strong> → copie la <strong>Clé API Web</strong> (commence par <code>AIza...</code>)</div></div>
+      <div class="ss"><span class="n">7</span><div>Revenez sur <strong>Realtime Database → Données</strong>, copiez l'URL de la base (ex&nbsp;: <code>https://escale-rh-default-rtdb.europe-west1.firebasedatabase.app</code>)</div></div>
+      <div class="ss"><span class="n">8</span><div>Collez les deux valeurs ci-dessous. <strong>Chaque collaborateur devra faire cette étape une seule fois.</strong></div></div>
     </div>
 
-    <div class="sc-form">
-      <input type="url" id="db-url-input" placeholder="https://votre-projet-default-rtdb.europe-west1.firebasedatabase.app" oninput="chkUrl()"/>
-      <button class="btn btn-green" id="connect-btn" onclick="doConnect()" disabled>Connecter</button>
+    <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:10px">
+      <input type="url" id="db-url-input" placeholder="URL de la base : https://votre-projet-default-rtdb.europe-west1.firebasedatabase.app" oninput="chkUrl()" style="padding:9px 12px;border:1.5px solid var(--border);border-radius:8px;font-family:'Inter',sans-serif;font-size:.84rem;background:var(--bg);color:var(--text);transition:border-color .15s"/>
+      <input type="text" id="api-key-input" placeholder="Clé API Web : AIzaSy..." oninput="chkUrl()" style="padding:9px 12px;border:1.5px solid var(--border);border-radius:8px;font-family:'Inter',sans-serif;font-size:.84rem;background:var(--bg);color:var(--text);transition:border-color .15s"/>
+      <button class="btn btn-green" id="connect-btn" onclick="doConnect()" disabled style="align-self:flex-end">Connecter</button>
     </div>
     <div id="setup-err"></div>
-    <p class="sc-note">L'URL est enregistrée uniquement dans ce navigateur. Les données restent dans votre base Firebase.</p>
+    <p class="sc-note">Ces valeurs sont enregistrées uniquement dans ce navigateur. La connexion est anonyme et sécurisée.</p>
   </div>
 </div>
 
@@ -307,17 +310,20 @@ const GEDI = [
 //  STATE
 // ══════════════════════════════════════════════
 let DB = localStorage.getItem('escale_db_v3') || '';
+let API_KEY = localStorage.getItem('escale_api_v3') || '';
 let state = {persons:{}, archived:{}};
 let sse = null;
 let expanded = new Set();
 let gExpanded = new Set();
 let archOpen = false;
+let AUTH_TOKEN = '';
+let TOKEN_EXP = 0;
 
 // ══════════════════════════════════════════════
 //  INIT
 // ══════════════════════════════════════════════
 window.addEventListener('load', () => {
-  if (DB) { showApp(); connect(); }
+  if (DB && API_KEY) { showApp(); authenticate().then(connect); }
   else showSetup();
 });
 
@@ -334,29 +340,49 @@ function showApp() {
 //  FIREBASE REST
 // ══════════════════════════════════════════════
 const base = () => DB.replace(/\/$/,'');
+const ap = () => AUTH_TOKEN ? `?auth=${AUTH_TOKEN}` : '';
+
+async function authenticate() {
+  // Reuse token if still valid (with 5min margin)
+  if (AUTH_TOKEN && Date.now() < TOKEN_EXP - 300000) return;
+  try {
+    const r = await fetch(
+      `https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=${API_KEY}`,
+      { method:'POST', body:JSON.stringify({returnSecureToken:true}),
+        headers:{'Content-Type':'application/json'} }
+    );
+    const d = await r.json();
+    if (d.idToken) {
+      AUTH_TOKEN = d.idToken;
+      TOKEN_EXP = Date.now() + parseInt(d.expiresIn) * 1000;
+      // Refresh 5 min before expiry
+      setTimeout(authenticate, parseInt(d.expiresIn) * 1000 - 300000);
+    }
+  } catch(e) { console.warn('Auth error', e); }
+}
 
 async function fbGet(p) {
-  const r = await fetch(`${base()}/${p}.json`);
+  const r = await fetch(`${base()}/${p}.json${ap()}`);
   if(!r.ok) throw new Error(r.status);
   return r.json();
 }
 async function fbPut(p,v) {
-  const r = await fetch(`${base()}/${p}.json`,{method:'PUT',body:JSON.stringify(v),headers:{'Content-Type':'application/json'}});
+  const r = await fetch(`${base()}/${p}.json${ap()}`,{method:'PUT',body:JSON.stringify(v),headers:{'Content-Type':'application/json'}});
   if(!r.ok) throw new Error(r.status);
   return r.json();
 }
 async function fbPatch(p,v) {
-  const r = await fetch(`${base()}/${p}.json`,{method:'PATCH',body:JSON.stringify(v),headers:{'Content-Type':'application/json'}});
+  const r = await fetch(`${base()}/${p}.json${ap()}`,{method:'PATCH',body:JSON.stringify(v),headers:{'Content-Type':'application/json'}});
   if(!r.ok) throw new Error(r.status);
   return r.json();
 }
 async function fbPost(p,v) {
-  const r = await fetch(`${base()}/${p}.json`,{method:'POST',body:JSON.stringify(v),headers:{'Content-Type':'application/json'}});
+  const r = await fetch(`${base()}/${p}.json${ap()}`,{method:'POST',body:JSON.stringify(v),headers:{'Content-Type':'application/json'}});
   if(!r.ok) throw new Error(r.status);
   return r.json();
 }
 async function fbDel(p) {
-  const r = await fetch(`${base()}/${p}.json`,{method:'DELETE'});
+  const r = await fetch(`${base()}/${p}.json${ap()}`,{method:'DELETE'});
   if(!r.ok) throw new Error(r.status);
 }
 
@@ -372,7 +398,7 @@ function connect() {
   if (sse) { sse.close(); sse = null; }
   sync('waiting','Connexion…');
 
-  sse = new EventSource(`${base()}/escale.json`);
+  sse = new EventSource(`${base()}/escale.json${ap()}`);
 
   sse.addEventListener('put', e => {
     try {
@@ -687,32 +713,54 @@ function chkModal() {
 
 // Setup
 function chkUrl() {
-  const v = document.getElementById('db-url-input').value.trim();
-  document.getElementById('connect-btn').disabled = !v.startsWith('https://');
+  const u = document.getElementById('db-url-input').value.trim();
+  const k = document.getElementById('api-key-input').value.trim();
+  document.getElementById('connect-btn').disabled = !u.startsWith('https://') || !k.startsWith('AIza');
 }
 
 async function doConnect() {
   const url = document.getElementById('db-url-input').value.trim().replace(/\/$/,'');
+  const key = document.getElementById('api-key-input').value.trim();
   const err = document.getElementById('setup-err');
   err.style.display = 'none';
 
   if (!url.startsWith('https://')) {
     err.textContent = '⚠️ L\'URL doit commencer par https://';
-    err.style.display = 'block';
-    return;
+    err.style.display = 'block'; return;
+  }
+  if (!key.startsWith('AIza')) {
+    err.textContent = '⚠️ La clé API Web commence par "AIza..."';
+    err.style.display = 'block'; return;
   }
 
+  // Test anonymous auth
   try {
-    const r = await fetch(`${url}/escale.json`);
-    if (r.status >= 500) throw new Error('Server error ' + r.status);
+    const r = await fetch(
+      `https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=${key}`,
+      { method:'POST', body:JSON.stringify({returnSecureToken:true}),
+        headers:{'Content-Type':'application/json'} }
+    );
+    const d = await r.json();
+    if (!d.idToken) throw new Error('No token');
+    AUTH_TOKEN = d.idToken;
+    TOKEN_EXP = Date.now() + parseInt(d.expiresIn) * 1000;
   } catch(e) {
-    err.textContent = '❌ Connexion impossible. Vérifiez l\'URL et les règles de la base Firebase.';
-    err.style.display = 'block';
-    return;
+    err.textContent = '❌ Clé API invalide ou authentification anonyme non activée dans Firebase.';
+    err.style.display = 'block'; return;
   }
 
-  DB = url;
+  // Test DB access
+  try {
+    const r = await fetch(`${url}/escale.json?auth=${AUTH_TOKEN}`);
+    if (r.status >= 500) throw new Error('Server error');
+  } catch(e) {
+    err.textContent = '❌ Impossible d\'accéder à la base. Vérifiez l\'URL et les règles Firebase.';
+    err.style.display = 'block'; return;
+  }
+
+  DB = url; API_KEY = key;
   localStorage.setItem('escale_db_v3', url);
+  localStorage.setItem('escale_api_v3', key);
   showApp();
   connect();
 }
@@ -721,7 +769,8 @@ function resetCfg() {
   if (!confirm('Modifier la connexion Firebase ?')) return;
   if (sse) sse.close();
   localStorage.removeItem('escale_db_v3');
-  DB = '';
+  localStorage.removeItem('escale_api_v3');
+  DB = ''; API_KEY = ''; AUTH_TOKEN = '';
   showSetup();
 }
 
