@@ -640,6 +640,14 @@ function buildCard(pid, p) {
       <div class="cb">
         <div class="sec-lbl">Engagement par la direction</div>
         ${cl}
+        ${ready ? `
+        <div style="padding:16px 18px;background:#f0faf5;border-top:2px solid var(--green);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
+          <div>
+            <div style="font-size:.85rem;font-weight:600;color:var(--green)">✓ Toutes les étapes obligatoires sont complétées</div>
+            <div style="font-size:.73rem;color:var(--muted);margin-top:2px">Le dossier peut être clôturé et archivé.</div>
+          </div>
+          <button class="btn btn-green" onclick="doArchive('${pid}',event)">📁 Clôturer et archiver</button>
+        </div>` : ''}
       </div>
     </div>`;
 }
