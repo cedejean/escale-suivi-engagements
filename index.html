@@ -128,7 +128,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 .gsub input[type=checkbox]:checked{background:var(--green-m);border-color:var(--green-m)}
 .gsub input[type=checkbox]:checked::after{content:'';position:absolute;left:2.5px;top:.5px;width:8px;height:4.5px;border-left:1.8px solid #fff;border-bottom:1.8px solid #fff;transform:rotate(-45deg)}
 .gsub.done span{color:var(--muted);text-decoration:line-through;text-decoration-color:#ccc}
-.gsub span{font-size:.81rem}
+.gsub span:not(.ob){font-size:.81rem}
 
 /* Empty */
 .empty{text-align:center;padding:52px 20px;color:var(--muted)}
@@ -301,7 +301,7 @@ const GEDI = [
   {id:'g04',lbl:'Prestation de serment',opt:true},
   {id:'g05',lbl:'Composition de ménage',opt:true},
   {id:'g06',lbl:'Récapitulatif des services antérieurs',opt:true},
-  {id:'g07',lbl:'Services rendus (1 seul PDF)'},
+  {id:'g07',lbl:'Services rendus (1 seul PDF)',opt:true},
   {id:'g08',lbl:'SEC12'},
   {id:'g09',lbl:'PV de carence (TPNL)',opt:true},
 ];
