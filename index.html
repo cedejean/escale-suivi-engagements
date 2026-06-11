@@ -127,7 +127,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 .gsub input[type=checkbox]:hover{border-color:var(--green-m)}
 .gsub input[type=checkbox]:checked{background:var(--green-m);border-color:var(--green-m)}
 .gsub input[type=checkbox]:checked::after{content:'';position:absolute;left:2.5px;top:.5px;width:8px;height:4.5px;border-left:1.8px solid #fff;border-bottom:1.8px solid #fff;transform:rotate(-45deg)}
-.gsub.done span{color:var(--muted);text-decoration:line-through;text-decoration-color:#ccc}
+.gsub.done span:not(.ob){color:var(--muted);text-decoration:line-through;text-decoration-color:#ccc}
 .gsub span:not(.ob){font-size:.81rem}
 
 /* Empty */
@@ -582,7 +582,7 @@ function buildCard(pid, p) {
         <div class="gedi-row ${gOpen ? 'gx' : ''}" onclick="tGedi('${pid}')">
           <div class="gedi-icon ${icls}">${ico}</div>
           <div class="gedi-tx">
-            <div class="gedi-nm">Documents GEDI</div>
+            <div class="gedi-nm">📁 Documents GEDI</div>
             <div class="gedi-rs">Secrétariat</div>
           </div>
           <span class="gedi-ct">${gdone}/${GEDI.length}</span>
