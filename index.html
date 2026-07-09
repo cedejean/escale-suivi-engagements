@@ -312,7 +312,6 @@ const GEDI = [
 let DB = localStorage.getItem('escale_db_v3') || '';
 let API_KEY = localStorage.getItem('escale_api_v3') || '';
 let state = {persons:{}, archived:{}};
-let sse = null;
 let expanded = new Set();
 let gExpanded = new Set();
 let archOpen = false;
@@ -387,68 +386,41 @@ async function fbDel(p) {
 }
 
 // ══════════════════════════════════════════════
-//  SSE REAL-TIME CONNECTION
+//  POLLING (rafraîchissement toutes les 3s)
 // ══════════════════════════════════════════════
+let pollTimer = null;
+let lastHash = '';
+
 function sync(st, lbl) {
   document.getElementById('sd').className = 'sd ' + st;
   document.getElementById('sl').textContent = lbl;
 }
 
+async function poll() {
+  try {
+    await authenticate();
+    const r = await fetch(`${base()}/escale.json${ap()}`);
+    if (!r.ok) throw new Error(r.status);
+    const newData = await r.json();
+    const newHash = JSON.stringify(newData);
+    if (newHash !== lastHash) {
+      lastHash = newHash;
+      state = newData || {persons:{}, archived:{}};
+      if (!state.persons) state.persons = {};
+      if (!state.archived) state.archived = {};
+      render();
+    }
+    sync('ok', 'Synchronisé ✓');
+  } catch(e) {
+    sync('err', 'Erreur — nouvelle tentative…');
+  }
+  pollTimer = setTimeout(poll, 3000);
+}
+
 function connect() {
-  if (sse) { sse.close(); sse = null; }
-  sync('waiting','Connexion…');
-
-  sse = new EventSource(`${base()}/escale.json${ap()}`);
-
-  sse.addEventListener('put', e => {
-    try {
-      const {path, data:d} = JSON.parse(e.data);
-      applyPut(path, d);
-      sync('ok','Synchronisé ✓');
-      render();
-    } catch(err) { console.warn('sse put err', err); }
-  });
-
-  sse.addEventListener('patch', e => {
-    try {
-      const {path, data:d} = JSON.parse(e.data);
-      applyPatch(path, d);
-      render();
-    } catch(err) { console.warn('sse patch err', err); }
-  });
-
-  sse.onerror = () => {
-    sync('err','Déconnecté — reconnexion…');
-    sse.close();
-    setTimeout(connect, 6000);
-  };
-}
-
-function applyPut(path, val) {
-  if (path === '/') {
-    state = val || {persons:{},archived:{}};
-    if (!state.persons) state.persons = {};
-    if (!state.archived) state.archived = {};
-    return;
-  }
-  const parts = path.split('/').filter(Boolean);
-  let ref = state;
-  for (let i = 0; i < parts.length-1; i++) {
-    if (ref[parts[i]] == null) ref[parts[i]] = {};
-    ref = ref[parts[i]];
-  }
-  ref[parts[parts.length-1]] = val;
-}
-
-function applyPatch(path, changes) {
-  if (!changes) return;
-  const parts = path === '/' ? [] : path.split('/').filter(Boolean);
-  let ref = state;
-  for (const p of parts) {
-    if (ref[p] == null) ref[p] = {};
-    ref = ref[p];
-  }
-  Object.assign(ref, changes);
+  if (pollTimer) clearTimeout(pollTimer);
+  sync('waiting', 'Connexion…');
+  poll();
 }
 
 // ══════════════════════════════════════════════
@@ -775,7 +747,7 @@ async function doConnect() {
 
 function resetCfg() {
   if (!confirm('Modifier la connexion Firebase ?')) return;
-  if (sse) sse.close();
+  if (pollTimer) clearTimeout(pollTimer);
   localStorage.removeItem('escale_db_v3');
   localStorage.removeItem('escale_api_v3');
   DB = ''; API_KEY = ''; AUTH_TOKEN = '';
